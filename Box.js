@@ -1,26 +1,26 @@
 class Box {
 
-  constructor(x,y,width,height,imagem){
+  constructor(x, y, width, height, imagem, scale) {
 
-    this.body = Bodies.rectangle(x, y, width, height, {
+    scale = scale === undefined ? 1 : scale;
 
+    var scaledWidth = width * scale;
+    var scaledHeight = height * scale;
+
+    this.body = Matter.Bodies.rectangle(x, y, scaledWidth, scaledHeight, {
       restitution: 0.2,
-
-      render:{
-        sprite:{
+      render: {
+        sprite: {
           texture: imagem,
-
           xScale: 1,
           yScale: 1
         }
       }
-
     });
-
   }
 
   addToWorld(world) {
-    Composite.add(world, this.body);
+    Matter.Composite.add(world, this.body);
   }
 
 }
