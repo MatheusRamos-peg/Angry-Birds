@@ -21,7 +21,7 @@ var render = Render.create({
     width: 900,
     height: 500,
     wireframes: false,
-    background: "url('assets/bg.webp')"
+    background: "url('Assets/background.jpg')"
   }
 });
 
@@ -77,35 +77,49 @@ var slingshot = new SlingShot( bird.body,
   }
 );
 
+bird.addToWorld(world);
+slingshot.addToWorld(world);
+pig.addToWorld(world);
+box1.addToWorld(world);
+box2.addToWorld(world);
+box3.addToWorld(world);
+
 // ------------------------------------------------
 // OBJETOS DO JOGO
 // ------------------------------------------------
 
-var pig = new Pig(700, 250);
+// Topo do chão em y = 460; caixas verticais com altura 80 → centro em 420
+var boxY = 420;
 
 var box1 = new Box(
   650,
-  430,
+  boxY,
   50,
   80,
-  "assets/madeira1.png"
+  "Assets/woodDefault.png"
 );
 
 var box2 = new Box(
   750,
-  430,
+  boxY,
   50,
   80,
-  "assets/madeira1.png"
+  "Assets/woodDefault.png"
 );
+
+var box3Scale = 0.75;
 
 var box3 = new Box(
   700,
-  370,
+  369,
   160,
   30,
-  "assets/madeira2.png"
+  "Assets/wood2.png",
+  box3Scale
 );
+
+// Porco sobre a prancha (box3): topo em y = 369 - (30 * box3Scale) / 2
+var pig = new Pig(700, 330);
 
 // ------------------------------------------------
 // ADICIONANDO AO MUNDO
@@ -131,6 +145,17 @@ Events.on(render, "afterRender", function() {
 
   // Madeira de trás
   slingshot.drawBack(ctx);
+
+  if (slingshot.isAttached()) {
+    slingshot.drawBack(ctx);
+  };
+
+  bird.draw(ctx);
+  if (slingshot.isAttached()) {
+    slingshot.drawPouch(ctx);
+  }
+  slingshot.drawFront(ctx);
+  pig.draw(ctx);
 
   // Elásticos
   slingshot.drawBands(ctx);
