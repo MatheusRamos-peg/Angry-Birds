@@ -7,7 +7,7 @@ class SlingShot {
     this.body = body;
     this.pointB = pointB;
 
-    // Elastico (matter.js)
+    // Elastico (Matter.js): puxa o passaro de volta para pointB quando esticado
     this.constraint = Constraint.create({
       bodyA: body,
       pointB: pointB,
@@ -20,58 +20,47 @@ class SlingShot {
 
     this.scale = options.scale !== undefined ? options.scale : 1;
 
+    // Canto superior esquerdo da madeira
     this.x = options.x !== undefined ? options.x : 150;
     this.y = options.y !== undefined ? options.y : 255;
 
-    this.forkWidth = 79 * this.scale;
-    this.forkHeight = 158 * this.scale;
-
-    this.pouchWidth = 75 * this.scale;
-    this.pouchHeight = 41 * this.scale;
-
-    var forkLeftOffsetX = options.forkLeftOffsetX !== undefined
-      ? options.forkLeftOffsetX
-      : 20;
-
-    var forkLeftOffsetY = options.forkLeftOffsetY !== undefined
-      ? options.forkLeftOffsetY
-      : 30;
-
-    var forkRightOffsetX = options.forkRightOffsetX !== undefined
-      ? options.forkRightOffsetX
-      : 60;
-
-    var forkRightOffsetY = options.forkRightOffsetY !== undefined
-      ? options.forkRightOffsetY
-      : 30;
+    // Pontas do elastico visual — relativas a x,y, escalam junto
+    var forkLeftOffsetX = options.forkLeftOffsetX !== undefined ? options.forkLeftOffsetX : 20;
+    var forkLeftOffsetY = options.forkLeftOffsetY !== undefined ? options.forkLeftOffsetY : 30;
+    var forkRightOffsetX = options.forkRightOffsetX !== undefined ? options.forkRightOffsetX : 60;
+    var forkRightOffsetY = options.forkRightOffsetY !== undefined ? options.forkRightOffsetY : 30;
 
     this.forkLeft = {
       x: this.x + forkLeftOffsetX * this.scale,
       y: this.y + forkLeftOffsetY * this.scale
     };
-
     this.forkRight = {
       x: this.x + forkRightOffsetX * this.scale,
       y: this.y + forkRightOffsetY * this.scale
     };
 
-    this.pouchOffsetX = -37 * this.scale;
-    this.pouchOffsetY = 18 * this.scale;
+    this.forkWidth = 79 * this.scale;
+    this.forkHeight = 158 * this.scale;
+    this.pouchWidth = 75 * this.scale;
+    this.pouchHeight = 41 * this.scale;
+
+    this.pouchOffsetX = (options.pouchOffsetX !== undefined ? options.pouchOffsetX : -37) * this.scale;
+    this.pouchOffsetY = (options.pouchOffsetY !== undefined ? options.pouchOffsetY : 18) * this.scale;
 
     this.imageBack = new Image();
-    this.imageBack.src = "Assets/slingshot1.png";
+    this.imageBack.src = "assets/slingshot1.png";
 
     this.imageFront = new Image();
-    this.imageFront.src = "Assets/slingshot2.png";
+    this.imageFront.src = "assets/slingshot2.png";
 
     this.imageBase = new Image();
-    this.imageBase.src = "Assets/rubberSlingshot.png";
-  
+    this.imageBase.src = "assets/rubberSlingshot.png";
+
     this.attached = true;
     this.dragging = false;
     this.maxStretch = options.maxStretch || 180;
-    this.launchpower = options.launchpower || 0.17;
-    this.grabradius = options.grabradius || 55;
+    this.launchPower = options.launchPower || 0.17;
+    this.grabRadius = options.grabRadius || 55;
   }
 
   addToWorld(world) {
@@ -82,14 +71,14 @@ class SlingShot {
     return this.attached;
   }
 
-  isonBird(mouseX, mouseY) {
-    var dX = mouseX - this.body.position.x;
-    var dY = mouseY - this.body.position.y;
-    return dX * dX + dY * dY <= this.grabradius * this.grabradius;
+  isOnBird(mouseX, mouseY) {
+    var dx = mouseX - this.body.position.x;
+    var dy = mouseY - this.body.position.y;
+    return dx * dx + dy * dy <= this.grabRadius * this.grabRadius;
   }
 
   tryStartDrag(mouseX, mouseY) {
-    if (this.attached || this.isOnBird(mouseX, mouseY)) {
+    if (!this.attached || !this.isOnBird(mouseX, mouseY)) {
       return false;
     }
     this.dragging = true;
@@ -104,26 +93,26 @@ class SlingShot {
       return;
     }
 
-    var dX = mouseX - this.pointB.x;
-    var dY = mouseY - this.pointB.y;
-    var dist = Math.sqrt(dX * dX + dY * dY);
+    var dx = mouseX - this.pointB.x;
+    var dy = mouseY - this.pointB.y;
+    var dist = Math.sqrt(dx * dx + dy * dy);
 
-    if (dist > this.maxStretch) {
+    if (dist > this.maxStretch && dist > 0) {
       var scale = this.maxStretch / dist;
-      dX *= scale;
-      dY *= scale;
+      dx *= scale;
+      dy *= scale;
     }
 
     Body.setPosition(this.body, {
-      x: this.pointB.x + dX,
-      y: this.pointB.y + dY
+      x: this.pointB.x + dx,
+      y: this.pointB.y + dy
     });
     Body.setVelocity(this.body, { x: 0, y: 0 });
     Body.setAngularVelocity(this.body, 0);
   }
 
   release(world) {
-    if (this.dragging || !this.attached) {
+    if (!this.dragging || !this.attached) {
       this.dragging = false;
       return;
     }
@@ -131,52 +120,29 @@ class SlingShot {
     this.dragging = false;
     this.attached = false;
 
-    var dX = this.pointB.x - this.body.position.x;
-    var dY = this.pointB.y - this.body.position.y;
+    var dx = this.pointB.x - this.body.position.x;
+    var dy = this.pointB.y - this.body.position.y;
 
     Composite.remove(world, this.constraint);
     this.constraint = null;
 
     Body.setSleeping(this.body, false);
     Body.setVelocity(this.body, {
-      x: dX * this.launchpower,
-      y: dY * this.launchpower
+      x: dx * this.launchPower,
+      y: dy * this.launchPower
     });
   }
 
   drawBack(ctx) {
-
-    if (!this.imageBack.complete) {
-      return;
-    }
-
-    ctx.drawImage(
-      this.imageBack,
-      this.x,
-      this.y,
-      this.forkWidth,
-      this.forkHeight
-    );
+    ctx.drawImage(this.imageBack, this.x, this.y, this.forkWidth, this.forkHeight);
   }
 
   drawFront(ctx) {
-
-    if (!this.imageFront.complete) {
-      return;
-    }
-
-    ctx.drawImage(
-      this.imageFront,
-      this.x,
-      this.y,
-      this.forkWidth,
-      this.forkHeight
-    );
+    ctx.drawImage(this.imageFront, this.x, this.y, this.forkWidth, this.forkHeight);
   }
 
   drawPouch(ctx) {
-
-    if (!this.imageBase.complete) {
+    if (!this.attached) {
       return;
     }
 
@@ -193,6 +159,9 @@ class SlingShot {
   }
 
   drawBands(ctx) {
+    if (!this.attached) {
+      return;
+    }
 
     var birdX = this.body.position.x;
     var birdY = this.body.position.y;
