@@ -16,7 +16,7 @@ class Bird {
 
     this.image = new Image();
 
-    this.image.src = "assets/passaro-animacao/passaro.png";
+    this.image.src = "assets/angrybirdsBird.png";
 
     this.frame = 0;
 
