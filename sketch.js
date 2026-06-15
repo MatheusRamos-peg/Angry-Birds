@@ -4,14 +4,19 @@ var Render = Matter.Render;
 var Runner = Matter.Runner;
 var Bodies = Matter.Bodies;
 var Composite = Matter.Composite;
+var Constraint = Matter.Constraint;
 var Body = Matter.Body;
-var Events = Matter.Events;
+var Events = 
+Matter.Events
+;
 
 // Criando o motor de física
 var engine = Engine.create();
 
 // Pegando o mundo do motor
-var world = engine.world;
+var world = 
+engine.world
+;
 
 // Criando o renderizador
 var render = Render.create({
@@ -21,61 +26,58 @@ var render = Render.create({
     width: 900,
     height: 500,
     wireframes: false,
-    background: "url('Assets/background.jpg')"
+    background: "url('assets/bg.webp')"
   }
 });
 
 // Criando o chão
-var ground = Bodies.rectangle(
-  450,
-  480,
-  900,
-  40,
-  {
-    isStatic: true,
-    render: {
-      fillStyle: "#6b4f2a"
-    }
+var ground = Bodies.rectangle(450, 480, 900, 40, {
+  isStatic: true,
+  render: {
+    fillStyle: "#6b4f2a"
   }
-);
+});
 
 // ------------------------------------------------
 // POSIÇÃO DO PÁSSARO
 // ------------------------------------------------
 
-// Altura do pássaro
 var slingY = 350;
-
-// Quanto ele fica para trás
 var birdBack = 25;
-
-// Posição final do pássaro
 var slingX = 150 - birdBack;
 
-// Criando o pássaro
 var bird = new Bird(slingX, slingY);
-
-// Mantendo o pássaro parado nesta aula
-Body.setStatic(bird.body, true);
+var slingPoint = { x: slingX, y: slingY };
 
 // ------------------------------------------------
-// ESTILINGUE VISUAL
+// ESTILINGUE
 // ------------------------------------------------
 
-var slingshot = new SlingShot( bird.body,
-  {
-    scale: 1.5,
+var slingshot = new SlingShot(bird.body, slingPoint, {
+  scale: 1.5,
+  x: 150,
+  y: 255,
+  forkLeftOffsetX: 20,
+  forkLeftOffsetY: 30,
+  forkRightOffsetX: 60,
+  forkRightOffsetY: 30
+});
 
-    x: 150,
-    y: 255,
+// ------------------------------------------------
+// OBJETOS DO JOGO
+// ------------------------------------------------
 
-    forkLeftOffsetX: 20,
-    forkLeftOffsetY: 30,
+var pig = new Pig(700, 250);
 
-    forkRightOffsetX: 60,
-    forkRightOffsetY: 30
-  }
-);
+var box1 = new Box(650, 430, 50, 80, "assets/madeira1.png");
+var box2 = new Box(750, 430, 50, 80, "assets/madeira1.png");
+var box3 = new Box(700, 370, 160, 30, "assets/madeira2.png");
+var trajectory = []; // 
+// ------------------------------------------------
+// ADICIONANDO AO MUNDO
+// ------------------------------------------------
+
+Composite.add(world, ground);
 
 bird.addToWorld(world);
 slingshot.addToWorld(world);
@@ -85,115 +87,129 @@ box2.addToWorld(world);
 box3.addToWorld(world);
 
 // ------------------------------------------------
-// OBJETOS DO JOGO
-// ------------------------------------------------
-
-// Topo do chão em y = 460; caixas verticais com altura 80 → centro em 420
-var boxY = 420;
-
-var box1 = new Box(
-  650,
-  boxY,
-  50,
-  80,
-  "Assets/woodDefault.png"
-);
-
-var box2 = new Box(
-  750,
-  boxY,
-  50,
-  80,
-  "Assets/woodDefault.png"
-);
-
-var box3Scale = 0.75;
-
-var box3 = new Box(
-  700,
-  369,
-  160,
-  30,
-  "Assets/wood2.png",
-  box3Scale
-);
-
-// Porco sobre a prancha (box3): topo em y = 369 - (30 * box3Scale) / 2
-var pig = new Pig(700, 330);
-
-// ------------------------------------------------
-// ADICIONANDO AO MUNDO
-// ------------------------------------------------
-
-Composite.add(world, ground);
-
-bird.addToWorld(world);
-
-pig.addToWorld(world);
-
-box1.addToWorld(world);
-box2.addToWorld(world);
-box3.addToWorld(world);
-
-// ------------------------------------------------
 // DESENHO DAS CAMADAS
 // ------------------------------------------------
-
+/*
 Events.on(render, "afterRender", function() {
-
   var ctx = render.context;
 
-  // Madeira de trás
   slingshot.drawBack(ctx);
-
   if (slingshot.isAttached()) {
-    slingshot.drawBack(ctx);
-  };
-
+    slingshot.drawBands(ctx);
+  }
   bird.draw(ctx);
   if (slingshot.isAttached()) {
     slingshot.drawPouch(ctx);
   }
   slingshot.drawFront(ctx);
   pig.draw(ctx);
-
-  // Elásticos
-  slingshot.drawBands(ctx);
-
-  // Pássaro
-  bird.draw(ctx);
-
-  // Couro
-  slingshot.drawPouch(ctx);
-
-  // Madeira da frente
-  slingshot.drawFront(ctx);
-
-  // Porco
-  pig.draw(ctx);
-
 });
 
+*/
+
+Events.on(render, "afterRender", function() {
+  var ctx = render.context;
+
+  slingshot.drawBack(ctx);
+
+  if (slingshot.isAttached()) {
+    slingshot.drawBands(ctx);
+  }
+
+  // Salva a posição do pássaro após o lançamento
+  if (!slingshot.isAttached()) {
+
+    trajectory.push({
+      x: bird.body.position.x,
+      y: bird.body.position.y,
+      life: 60
+    });
+
+  }
+
+  // Desenha as bolinhas da trajetória
+  for (var i = trajectory.length - 1; i >= 0; i--) {
+
+    var p = trajectory[i];
+
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(255,255,255," + (
+p.life
+ / 60) + ")";
+    ctx.fill();
+
+    p.life--;
+
+    if (
+p.life
+ <= 0) {
+      trajectory.splice(i, 1);
+    }
+  }
+
+  bird.draw(ctx);
+
+  if (slingshot.isAttached()) {
+    slingshot.drawPouch(ctx);
+  }
+
+  slingshot.drawFront(ctx);
+  pig.draw(ctx);
+});
 // ------------------------------------------------
 // ANIMAÇÕES
 // ------------------------------------------------
 
 setInterval(function() {
-
   bird.animate();
   pig.animate();
-
 }, 300);
+
+// ------------------------------------------------
+// ARRASTAR E LANÇAR O PÁSSARO
+// ------------------------------------------------
+
+var canvas = render.canvas;
+
+function getMousePos(event) {
+  var rect = canvas.getBoundingClientRect();
+  return {
+    x: event.clientX - rect.left,
+    y: event.clientY - 
+rect.top
+
+  };
+}
+
+canvas.addEventListener("mousedown", function(event) {
+  var pos = getMousePos(event);
+  slingshot.tryStartDrag(pos.x, pos.y);
+});
+
+canvas.addEventListener("mousemove", function(event) {
+  if (!slingshot.dragging) {
+    return;
+  }
+  var pos = getMousePos(event);
+  slingshot.dragTo(pos.x, pos.y);
+});
+
+function onMouseRelease() {
+  slingshot.release(world);
+}
+
+canvas.addEventListener("mouseup", onMouseRelease);
+canvas.addEventListener("mouseleave", onMouseRelease);
+window.addEventListener("mouseup", onMouseRelease);
 
 // ------------------------------------------------
 // INICIANDO O JOGO
 // ------------------------------------------------
 
-Render.run(render);
+Render.run
+(render);
 
 var runner = Runner.create();
-
-Runner.run(
-  runner,
-  engine
-);
+Runner.run
+(runner, engine); 
