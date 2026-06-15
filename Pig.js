@@ -10,8 +10,8 @@ class Pig {
     });
 
     this.image = new Image();
-    this.image.src = "assets/porco-animacao/porco.png";
-
+    this.image.src = "assets/angrybirdsPig.png";
+    this.image.src = "assets/kingPig.png";
     this.frame = 0;
   }
 
