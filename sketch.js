@@ -6,17 +6,16 @@ var Bodies = Matter.Bodies;
 var Composite = Matter.Composite;
 var Constraint = Matter.Constraint;
 var Body = Matter.Body;
-var Events = 
-Matter.Events
+var Events = Matter.Events;
 ;
+
+var pigAtingido = false;
+var jogoFinalizado = false;
+var tempolancamento = 0;
 
 // Criando o motor de física
 var engine = Engine.create();
-
-// Pegando o mundo do motor
-var world = 
-engine.world
-;
+var world = engine.world;
 
 // Criando o renderizador
 var render = Render.create({
@@ -72,6 +71,7 @@ var pig = new Pig(700, 250);
 var box1 = new Box(650, 430, 50, 80, "assets/madeira1.png");
 var box2 = new Box(750, 430, 50, 80, "assets/madeira1.png");
 var box3 = new Box(700, 370, 160, 30, "assets/madeira2.png");
+
 var trajectory = []; // 
 // ------------------------------------------------
 // ADICIONANDO AO MUNDO
@@ -86,11 +86,83 @@ box1.addToWorld(world);
 box2.addToWorld(world);
 box3.addToWorld(world);
 
-// ------------------------------------------------
-// DESENHO DAS CAMADAS
-// ------------------------------------------------
-/*
-Events.on(render, "afterRender", function() {
+var painelFinal = document.createElement("div");
+painelFinal.style.position = "absolute";
+painelFinal.style.top = "50%";
+painelFinal.style.left = "50%";
+painelFinal.style.transform = "translate(-50%, -50%)";
+painelFinal.style.backgroundColor = "rgba(0, 0, 0, 0.85)";
+painelFinal.style.color = "white";
+painelFinal.style.padding = "25px";
+painelFinal.style.borderRadius = "15px";
+painelFinal.style.textAlign = "center";
+painelFinal.style.fontFamily = "Arial";
+painelFinal.style.display = "none";
+painelFinal.style.zIndex = "10";
+
+document.body.appendChild(painelFinal);
+
+//Mostra a tela final quando o porco desaparece
+function mostrarTelaFinal() {
+
+  jogoFinalizado = true;
+
+  painelFinal.innerHTML = 
+  "<h1>Parabéns!</h1><p>Você acertou o porco!</p>";
+
+  "<img src='assets/next.png'"
+  onclick='proximaFase()' 
+  style='width: 120px; cursor: pointer; margin-top: 10px;'>"
+  >
+  painelFinal.style.display = "block";
+}
+
+function antigirPorco() {
+  if (!pigAtingido || jogoFinalizado || pig.removed) {
+    return;
+  }
+  pigAtingido = true;
+  pig.startFade();
+}
+    Events.on(engine, "collisionStart", function(event) {
+      if (slingshot.isAttached()) {
+        return;
+      }
+    var pairs = event.pairs;
+    for (var i = 0; i < pairs.length; i++) {
+      var bodyA = pairs[i].bodyA;
+      var bodyB = pairs[i].bodyB;
+      var bateuNoPorco =
+      (bodyA.label === "bird" && bodyB.label === "pig") ||
+      (bodyB.label === "bird" && bodyA.label === "pig");
+      if (bateuNoPorco) {
+        pigAtingido = true;
+        antigirPorco();
+        break;
+      }
+    }
+    }};
+
+    function verificarColisaoComPorco() {
+
+      if (slinghost.isAttached() || pigAtingido || jogoFinalizado || pig.removed) {
+        return;
+      }
+
+      var dx = bird.body.position.x - pig.body.position.x;
+      var dy = bird.body.position.y - pig.body.position.y;
+      var raioColisao= 25 + 28;
+
+      if (dx * dx + dy * dy <= raioColisao * raioColisao) {
+        atingirPorco();
+      }
+
+    }
+
+    Events.on(render, "afterRender", function() {
+
+      var ctx = render.context;
+
   var ctx = render.context;
 
   slingshot.drawBack(ctx);
