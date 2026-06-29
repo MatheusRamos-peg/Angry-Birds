@@ -3,7 +3,9 @@ class Bird {
   constructor(x,y){
 
     this.body = Bodies.circle(x, y, 25, {
-
+      
+      label: "bird",
+      
       restitution: 0.6,
 
       density: 0.004,
