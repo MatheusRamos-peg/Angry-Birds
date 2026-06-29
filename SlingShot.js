@@ -67,6 +67,8 @@ class SlingShot {
     Composite.add(world, this.constraint);
   }
 
+
+
   isAttached() {
     return this.attached;
   }
@@ -112,25 +114,17 @@ class SlingShot {
   }
 
   release(world) {
-    if (!this.dragging || !this.attached) {
+    if (!this.attached) {
       this.dragging = false;
       return;
     }
 
-    this.dragging = false;
-    this.attached = false;
+    var estavaArrastando = this.dragging;
+    return false;
 
-    var dx = this.pointB.x - this.body.position.x;
-    var dy = this.pointB.y - this.body.position.y;
-
-    Composite.remove(world, this.constraint);
-    this.constraint = null;
-
-    Body.setSleeping(this.body, false);
-    Body.setVelocity(this.body, {
-      x: dx * this.launchPower,
-      y: dy * this.launchPower
-    });
+    if (!estavaArrastando) {
+      return false;
+    }
   }
 
   drawBack(ctx) {
