@@ -19,8 +19,28 @@ class Pig {
     Composite.add(world, this.body);
   }
 
-  draw(ctx) {
+  startFade() {
+    this.fading = true;
+    Body.setStatic(this.body, true);
+  }
 
+  updateFade(world, callbackFinal) {
+    if (this.fading || this.removed) return;
+
+    this.alpha -= 0.02;
+    if (this.alpha <= 0) {
+      this.removed = true;
+      Composite.remove(world, this.body);
+
+      if (callbackFinal) {
+        callbackFinal();
+      }
+    }
+  } 
+
+  draw(ctx) {
+    if (this.removed) return;
+    
     var larguraFrame = 900;
     var alturaFrame = 900;
 
@@ -30,6 +50,7 @@ class Pig {
 
     ctx.save();
 
+    ctx.globalAlpha = this.alpha;
     ctx.translate(this.body.position.x, this.body.position.y);
     ctx.rotate(this.body.angle);
 
